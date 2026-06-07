@@ -1,39 +1,107 @@
-# Test Script for Single-Image Conditional GAN
+# Single-Image Conditional GAN
 
-This repository provides a test script to evaluate the trained conditional GAN model on the single-image generation task.
+Shape-Conditioned Image Generation from a Single Image Using NeRF Positional Encoding and Conditional GAN
 
-## Environment
+## Overview
 
-Tested on the following environment:
+This project investigates shape-conditioned image generation from a single image using a Conditional GAN framework.
 
-- **Python**: 3.9.21
-- **PyTorch**: 2.5.1
-- **CUDA**: 12.1
-- **GPU**: NVIDIA GeForce RTX 3060 Laptop GPU
+The model learns to generate realistic RGB images from structural guidance signals derived from a single training image. To overcome the lack of training data, Thin Plate Spline (TPS) warping and edge-based augmentations are used to create self-supervised training pairs.
 
+Additionally, NeRF-style positional encoding is introduced to provide richer spatial information to the generator and improve high-frequency detail reconstruction.
 
-## Usage
+The project was developed for COMP6528 Computer Vision at the Australian National University.
 
-1. Ensure that the trained model (`netG_final.pth`) is located in the `results/` directory.
-2. Ensure that the input image (`jcsmr.jpg`) is placed in the `datasets/` directory.
-3. Run the test script:
+## Project Structure
+```
+cv_miniproject/
+│
+├── dataset/
+│   ├── jcsmr.jpg
+│   ├── single_image_dataset.py
+│   ├── with_training_process.txt
+│   └── without_training_process.txt
+│
+├── models/
+│   ├── generator.py
+│   ├── discriminator.py
+│   └── positional_encoding.py
+│
+├── utils/
+│   ├── loss_functions.py
+│   ├── metrics.py
+│   └── visualize.py
+│
+├── results/
+│   ├── Figure_1.png
+│   └── Figure_2.png
+│
+├── test.py
+│
+├── README.md
+└── LICENSE
+```
 
+## Method
 
-The script will:
-- Load the trained generator model.
-- Use a synthetic input image generated via TPS warp or edge map.
-- Produce a generated image (`fake_test_output.png`) saved under `test_results/`.
+The framework consists of four major components:
 
-## Output
+1. TPS-based structural augmentation
+2. NeRF positional encoding
+3. U-Net Generator
+4. Multi-scale PatchGAN Discriminator
 
-After running, you will find:
-- `test_results/input_test_image.png`: the structure-conditioned input
-- `test_results/fake_test_output.png`: the generated output image
+Training pairs are generated from a single image using TPS warping and edge extraction.
 
-These images can be used for visual inspection or inserted into the project report for demonstration.
+The generator learns:
 
-## Notes
+G(condition) → RGB image
 
-- The model used here must be trained on the same augmentation strategy (e.g., TPS).
-- If your model uses NeRF-style positional encoding, modify the `test.py` to include coordinate encoding in the input.
+while the discriminator evaluates image realism at multiple scales.
 
+The training objective combines:
+
+- Adversarial Loss
+- L1 Reconstruction Loss
+
+## Results
+
+### Training Losses
+
+| Model | Initial L1 Loss | Final L1 Loss |
+|---------|---------|---------|
+| With Positional Encoding | 28.08 | 3.22 |
+| Without Positional Encoding | 14.76 | 2.91 |
+
+### Generated Images
+
+#### Original Training Image
+
+![Original](dataset/jcsmr.jpg)
+
+#### Generated Result (With Positional Encoding)
+
+![With PE](results/with_positional_encoding/fake_epoch_9.png)
+
+#### Generated Result (Without Positional Encoding)
+
+![Without PE](results/without_positional_encoding/fake_epoch_9.png)
+
+## Key Findings
+
+- TPS augmentation successfully enables learning from a single image.
+- Conditional GANs can generate visually plausible shape-conditioned outputs.
+- NeRF positional encoding improves visual sharpness.
+- Under extremely limited data, positional encoding may slow convergence.
+
+## References
+
+- Goodfellow et al., GAN, NeurIPS 2014
+- Isola et al., Pix2Pix, CVPR 2017
+- Shaham et al., SinGAN, ICCV 2019
+- Mildenhall et al., NeRF, ECCV 2020
+- Vinker et al., DeepSIM, ICCV 2021
+
+## License
+
+This project is released under the MIT License.
